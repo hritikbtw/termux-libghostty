@@ -15,6 +15,13 @@ _GRADLE_VERSION=8.10.2
 termux_step_post_get_source() {
 	sed -i'' -E -e "s|\@TERMUX_PREFIX\@|${TERMUX_PREFIX}|g" "$TERMUX_PKG_SRCDIR/am-libexec-packaged"
 	sed -i'' -E -e "s|\@TERMUX_APP_PACKAGE\@|${TERMUX_APP_PACKAGE}|g" "$TERMUX_PKG_SRCDIR/app/src/main/java/com/termux/termuxam/FakeContext.java"
+	# The upstream project pins SDK 33 and lets AGP 7.4.2 select build-tools 30.0.3.
+	# Termux's CI image provisions the current SDK/build-tools versions instead, and
+	# the runner SDK directory is not writable for Gradle's automatic downloads.
+	sed -i'' -E \
+		-e 's/compileSdkVersion[[:space:]]+33/compileSdkVersion 35/' \
+		-e '/^[[:space:]]*compileSdkVersion[[:space:]]+35/a\\    buildToolsVersion "'"${TERMUX_ANDROID_BUILD_TOOLS_VERSION}"'"' \
+		"$TERMUX_PKG_SRCDIR/app/build.gradle"
 }
 
 termux_step_make() {
