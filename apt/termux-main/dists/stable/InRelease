@@ -1,0 +1,51 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Date: Sun, 09 Aug 2026 21:16:58 +0000
+MD5Sum:
+ c40b6b17903f519825281e6a50446424               38 Release
+ b4ba9f48d623095cb52f1405638c25eb              643 main/binary-aarch64/Packages
+ 535f656cd55b9e647a3c2941b8bffe55              468 main/binary-aarch64/Packages.gz
+ b4ba9f48d623095cb52f1405638c25eb              643 main/binary-arm/Packages
+ 535f656cd55b9e647a3c2941b8bffe55              468 main/binary-arm/Packages.gz
+ b4ba9f48d623095cb52f1405638c25eb              643 main/binary-i686/Packages
+ 535f656cd55b9e647a3c2941b8bffe55              468 main/binary-i686/Packages.gz
+ b4ba9f48d623095cb52f1405638c25eb              643 main/binary-x86_64/Packages
+ 535f656cd55b9e647a3c2941b8bffe55              468 main/binary-x86_64/Packages.gz
+SHA1:
+ 64ff45c124b99b5b49ef7b96f9f49a9a54dbac12               38 Release
+ 626b1ff34ac1a7c4166c3821a20f1bc55f53e806              643 main/binary-aarch64/Packages
+ 395c0b183b50daff0bb61ca960fd19c6f54dee27              468 main/binary-aarch64/Packages.gz
+ 626b1ff34ac1a7c4166c3821a20f1bc55f53e806              643 main/binary-arm/Packages
+ 395c0b183b50daff0bb61ca960fd19c6f54dee27              468 main/binary-arm/Packages.gz
+ 626b1ff34ac1a7c4166c3821a20f1bc55f53e806              643 main/binary-i686/Packages
+ 395c0b183b50daff0bb61ca960fd19c6f54dee27              468 main/binary-i686/Packages.gz
+ 626b1ff34ac1a7c4166c3821a20f1bc55f53e806              643 main/binary-x86_64/Packages
+ 395c0b183b50daff0bb61ca960fd19c6f54dee27              468 main/binary-x86_64/Packages.gz
+SHA256:
+ 73ee87d59c645efdccc434bd855fb510e82563fcfd3fa08f65d21a54051c9b29               38 Release
+ b5b2ab7ae3b2d40df084e39358383d10eb1b874ef502cb0a19fbe4c2c6f852a3              643 main/binary-aarch64/Packages
+ 89f183a4cf0addc867dfd6b47a8f5564ef2efe380212f80cb3e73c7117f6be1d              468 main/binary-aarch64/Packages.gz
+ b5b2ab7ae3b2d40df084e39358383d10eb1b874ef502cb0a19fbe4c2c6f852a3              643 main/binary-arm/Packages
+ 89f183a4cf0addc867dfd6b47a8f5564ef2efe380212f80cb3e73c7117f6be1d              468 main/binary-arm/Packages.gz
+ b5b2ab7ae3b2d40df084e39358383d10eb1b874ef502cb0a19fbe4c2c6f852a3              643 main/binary-i686/Packages
+ 89f183a4cf0addc867dfd6b47a8f5564ef2efe380212f80cb3e73c7117f6be1d              468 main/binary-i686/Packages.gz
+ b5b2ab7ae3b2d40df084e39358383d10eb1b874ef502cb0a19fbe4c2c6f852a3              643 main/binary-x86_64/Packages
+ 89f183a4cf0addc867dfd6b47a8f5564ef2efe380212f80cb3e73c7117f6be1d              468 main/binary-x86_64/Packages.gz
+SHA512:
+ fba4c8a8084f4021ddb700747d283390f44b25a4f5e518c7a5aa89727cdd5226cf03ac19a132e0f5a3ecd61bf1cebe9f6b81d90bd1a10d47faae995e6c5d0199               38 Release
+ 89d5ff4e912b86f13e5d0a4e971a4539ef9360f82a9b17fc5d1796cd9a5b0d7b450e6af810ad325db4eed3274900d5a78f8b5312aa980d181af4ef18d64c4fde              643 main/binary-aarch64/Packages
+ bc5d8f1b5d8c0b0c72c48f10aa224e22d5bae4d45222b8eaa03c3b8e9da6beaf2530b525291f77f8782093989ac4f25f308dc6f5299151fbae59d2d289b7c205              468 main/binary-aarch64/Packages.gz
+ 89d5ff4e912b86f13e5d0a4e971a4539ef9360f82a9b17fc5d1796cd9a5b0d7b450e6af810ad325db4eed3274900d5a78f8b5312aa980d181af4ef18d64c4fde              643 main/binary-arm/Packages
+ bc5d8f1b5d8c0b0c72c48f10aa224e22d5bae4d45222b8eaa03c3b8e9da6beaf2530b525291f77f8782093989ac4f25f308dc6f5299151fbae59d2d289b7c205              468 main/binary-arm/Packages.gz
+ 89d5ff4e912b86f13e5d0a4e971a4539ef9360f82a9b17fc5d1796cd9a5b0d7b450e6af810ad325db4eed3274900d5a78f8b5312aa980d181af4ef18d64c4fde              643 main/binary-i686/Packages
+ bc5d8f1b5d8c0b0c72c48f10aa224e22d5bae4d45222b8eaa03c3b8e9da6beaf2530b525291f77f8782093989ac4f25f308dc6f5299151fbae59d2d289b7c205              468 main/binary-i686/Packages.gz
+ 89d5ff4e912b86f13e5d0a4e971a4539ef9360f82a9b17fc5d1796cd9a5b0d7b450e6af810ad325db4eed3274900d5a78f8b5312aa980d181af4ef18d64c4fde              643 main/binary-x86_64/Packages
+ bc5d8f1b5d8c0b0c72c48f10aa224e22d5bae4d45222b8eaa03c3b8e9da6beaf2530b525291f77f8782093989ac4f25f308dc6f5299151fbae59d2d289b7c205              468 main/binary-x86_64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYKAB0WIQT2wyPSXzLSFWYz/EsX8hSLpfDwYAUCanjuSgAKCRAX8hSLpfDw
+YIOhAP94bdCqk9CkT+WKuLKGibxtnMze85naHHipNcqGze3QFAEA1fOiAyoF07BK
+a0Xc7AsV13JOXK1YDHpprXj+uo6d1Qs=
+=4Q7x
+-----END PGP SIGNATURE-----
