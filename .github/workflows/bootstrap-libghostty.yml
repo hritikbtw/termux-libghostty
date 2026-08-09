@@ -1,0 +1,77 @@
+name: LibGhostty bootstraps
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/**'
+      - 'root-packages/**'
+      - 'x11-packages/**'
+      - 'scripts/**'
+      - 'repo.json'
+      - '.github/workflows/bootstrap-libghostty.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: libghostty-bootstraps
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }} bootstrap
+    permissions:
+      contents: read
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, arm, i686, x86_64]
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7
+
+      - name: Build bootstrap from local package sources
+        run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures "${{ matrix.arch }}"
+
+      - name: Store bootstrap archive
+        uses: actions/upload-artifact@v6
+        with:
+          name: bootstrap-${{ matrix.arch }}
+          path: bootstrap-${{ matrix.arch }}.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish bootstrap release
+    needs: build
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch bootstrap archives
+        uses: actions/download-artifact@v7
+        with:
+          merge-multiple: true
+          path: ./
+
+      - name: Publish stable bootstrap release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view bootstrap-libghostty-latest --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit bootstrap-libghostty-latest \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "LibGhostty bootstrap archives (android-7)" \
+              --notes "Built from ${GITHUB_SHA}."
+          else
+            gh release create bootstrap-libghostty-latest \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "LibGhostty bootstrap archives (android-7)" \
+              --notes "Built from ${GITHUB_SHA}." \
+              --latest=false
+          fi
+          gh release upload bootstrap-libghostty-latest bootstrap-*.zip \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber
