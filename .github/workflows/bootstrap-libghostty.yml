@@ -33,6 +33,9 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v7
 
+      - name: Build package-builder image with fork SDK
+        run: docker build -t ghcr.io/termux/package-builder:latest scripts/
+
       - name: Build bootstrap from local package sources
         run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures "${{ matrix.arch }}"
 
