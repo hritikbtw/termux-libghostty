@@ -96,14 +96,14 @@ jobs:
     permissions:
       issues: write
       contents: write
-    if: github.event_name != 'pull_request' && github.event_name != 'push' && github.repository == 'termux/termux-packages'
+    if: github.event_name != 'pull_request' && github.event_name != 'push' && github.repository == 'hritikbtw/termux-libghostty'
     runs-on: ubuntu-26.04
     steps:
       - name: Clone repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.TERMUXBOT2_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Enable zram
         uses: ./.github/actions/zram
         with:
@@ -125,9 +125,12 @@ jobs:
             jq
       - name: Process package updates
         env:
-          GITHUB_TOKEN: ${{ secrets.TERMUXBOT2_TOKEN }}
-          BUILD_PACKAGES: "true"
-          CREATE_ISSUE: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Recipe updates are committed automatically. Package builds are
+          # performed by the Packages workflow after the recipe commit and
+          # are bootstrapped from source until this repository is populated.
+          BUILD_PACKAGES: "false"
+          CREATE_ISSUE: "false"
           GIT_COMMIT_PACKAGES: "true"
           GIT_PUSH_PACKAGES: "true"
           MANUAL_INPUT_PACKAGES: ${{ github.event.inputs.packages }}
@@ -148,7 +151,7 @@ jobs:
         run: |
           curl \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.TERMUXBOT2_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -X POST \
             --data '{"ref":"master"}' \
             "https://api.github.com/repos/termux/repology-metadata/actions/workflows/repology_metadata.yml/dispatches"

@@ -289,7 +289,11 @@ jobs:
         echo "packages: ${packages[*]}"
 
         if [[ "${#packages[@]}" -gt 0 ]]; then
-          ./scripts/run-docker.sh -d ./build-package.sh -I -C -a "${{ matrix.target_arch }}" "${packages[@]}"
+          # Bootstrap LibGhostty packages from source. Do not use -I here:
+          # stock Termux binary dependencies are compiled for com.termux.
+          # Once the custom repository is populated, this can be switched to
+          # -I against the LibGhostty repository.
+          ./scripts/run-docker.sh -d ./build-package.sh -C -a "${{ matrix.target_arch }}" "${packages[@]}"
         fi
 
     - name: Generate build artifacts

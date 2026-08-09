@@ -1,0 +1,140 @@
+name: Publish LibGhostty APT repository
+
+on:
+  workflow_run:
+    workflows: [Packages]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: libghostty-apt-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.repository.full_name == 'hritikbtw/termux-libghostty'
+    runs-on: ubuntu-24.04
+    env:
+      APT_SITE: site/apt
+
+    steps:
+      - name: Restore published site
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          token: ${{ github.token }}
+
+      - name: Initialize site branch when first publishing
+        run: |
+          if [ ! -d site/.git ]; then
+            git init site
+            git -C site checkout --orphan gh-pages
+            git -C site remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          fi
+          mkdir -p "$APT_SITE"
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: debs-*
+          path: incoming-artifacts
+          merge-multiple: true
+
+      - name: Extract packages into the published pool
+        run: |
+          set -euo pipefail
+          mkdir -p incoming
+          shopt -s nullglob
+          archives=(incoming-artifacts/*.tar)
+          if [ "${#archives[@]}" -eq 0 ]; then
+            echo "No package archives were produced by the Packages workflow."
+            exit 1
+          fi
+          for archive in "${archives[@]}"; do
+            tar xf "$archive" -C incoming
+          done
+
+          declare -A repos=(
+            [termux-libghostty-main]=termux-main
+            [termux-libghostty-root]=termux-root
+            [termux-libghostty-x11]=termux-x11
+          )
+          for repo in "${!repos[@]}"; do
+            list="incoming/debs/built_${repo}_packages.txt"
+            [ -f "$list" ] || continue
+            pool="$APT_SITE/${repos[$repo]}/pool/main"
+            mkdir -p "$pool"
+            while IFS= read -r package; do
+              [ -n "$package" ] || continue
+              find incoming/debs -maxdepth 1 -type f \
+                \( -name "${package}_*.deb" -o -name "${package}-static_*.deb" \) \
+                -exec cp -f {} "$pool/" \;
+            done < "$list"
+          done
+
+      - name: Install APT metadata tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends apt-utils gnupg
+
+      - name: Generate and sign APT metadata
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          test -n "$APT_GPG_PRIVATE_KEY" || {
+            echo "APT_GPG_PRIVATE_KEY repository secret is not configured." >&2
+            exit 1
+          }
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          printf '%s\n' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          key_id="$(gpg --batch --list-secret-keys --with-colons | awk -F: '$1 == "sec" { print $5; exit }')"
+          test -n "$key_id"
+
+          for repo_dist in \
+            "termux-main stable main" \
+            "termux-root root stable" \
+            "termux-x11 x11 main"; do
+            read -r repo distribution component <<< "$repo_dist"
+            root="$APT_SITE/$repo"
+            [ -d "$root/pool/main" ] || continue
+            for arch in aarch64 arm i686 x86_64; do
+              binary="$root/dists/$distribution/$component/binary-$arch"
+              mkdir -p "$binary"
+              apt-ftparchive -a "$arch" packages "$root/pool/main" > "$binary/Packages"
+              gzip -9c "$binary/Packages" > "$binary/Packages.gz"
+            done
+            mkdir -p "$root/dists/$distribution"
+            apt-ftparchive release "$root/dists/$distribution" > "$root/dists/$distribution/Release"
+            gpg --batch --pinentry-mode loopback --passphrase "$APT_GPG_PASSPHRASE" \
+              --local-user "$key_id" --clearsign \
+              --output "$root/dists/$distribution/InRelease" \
+              "$root/dists/$distribution/Release"
+            gpg --batch --pinentry-mode loopback --passphrase "$APT_GPG_PASSPHRASE" \
+              --local-user "$key_id" --armor --detach-sign \
+              --output "$root/dists/$distribution/Release.gpg" \
+              "$root/dists/$distribution/Release"
+          done
+          gpg --armor --export "$key_id" > "$APT_SITE/libghostty-archive-keyring.asc"
+
+      - name: Commit published repository
+        run: |
+          set -euo pipefail
+          git -C site config user.name "LibGhostty Package Bot"
+          git -C site config user.email "actions@users.noreply.github.com"
+          git -C site add apt
+          git -C site commit -m "Publish packages from ${{ github.event.workflow_run.head_sha }}" || exit 0
+          git -C site push origin HEAD:gh-pages
