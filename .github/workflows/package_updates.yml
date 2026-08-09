@@ -147,7 +147,7 @@ jobs:
             ./scripts/bin/update-packages "@all"
           fi
       - name: Trigger repology metadata generation
-        if: always()
+        if: always() && github.repository == 'termux/termux-packages'
         run: |
           curl \
             -H "Accept: application/vnd.github.v3+json" \
