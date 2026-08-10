@@ -13,17 +13,52 @@ on:
       - '.github/workflows/bootstrap-libghostty.yml'
   workflow_dispatch:
 
-permissions: {}
-
 concurrency:
   group: libghostty-bootstraps
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build ${{ matrix.arch }} bootstrap
+  builder-image:
+    name: Build shared package-builder image
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
+      packages: write
+    env:
+      BUILDER_IMAGE: ghcr.io/${{ github.repository_owner }}/termux-libghostty-builder:${{ github.sha }}
+      BUILDER_IMAGE_LATEST: ghcr.io/${{ github.repository_owner }}/termux-libghostty-builder:latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and publish shared package-builder image
+        uses: docker/build-push-action@v6
+        with:
+          context: scripts
+          file: scripts/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BUILDER_IMAGE }}
+            ${{ env.BUILDER_IMAGE_LATEST }}
+          cache-from: type=gha,scope=libghostty-builder
+          cache-to: type=gha,mode=max,scope=libghostty-builder
+
+  build:
+    name: Build ${{ matrix.arch }} bootstrap
+    needs: builder-image
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
@@ -33,10 +68,22 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v7
 
-      - name: Build package-builder image with fork SDK
-        run: docker build -t ghcr.io/termux/package-builder:latest scripts/
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Pull shared package-builder image
+        env:
+          BUILDER_IMAGE: ghcr.io/${{ github.repository_owner }}/termux-libghostty-builder:${{ github.sha }}
+        run: docker pull "$BUILDER_IMAGE"
 
       - name: Build bootstrap from local package sources
+        env:
+          TERMUX_BUILDER_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/termux-libghostty-builder:${{ github.sha }}
+          CONTAINER_NAME: termux-libghostty-builder-${{ matrix.arch }}
         run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures "${{ matrix.arch }}"
 
       - name: Store bootstrap archive
