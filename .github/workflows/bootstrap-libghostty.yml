@@ -18,8 +18,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  source-preflight:
+    name: Validate critical source mirrors
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v7
+
+      - name: Download critical sources before expensive builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t urls < <(
+            . packages/attr/build.sh
+            echo "$TERMUX_PKG_SRCURL"
+            . x11-packages/foot/build.sh
+            echo "$TERMUX_PKG_SRCURL"
+          )
+          for url in "${urls[@]}"; do
+            echo "Checking $url"
+            curl --fail --location --retry 5 --retry-all-errors \
+              --connect-timeout 20 --max-time 120 \
+              --output /dev/null "$url"
+          done
+
   builder-image:
     name: Build shared package-builder image
+    needs: source-preflight
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -55,7 +82,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.arch }} bootstrap
-    needs: builder-image
+    needs: [source-preflight, builder-image]
     permissions:
       contents: read
       packages: read
