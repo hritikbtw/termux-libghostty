@@ -429,7 +429,9 @@ main() {
 
 		# Core utilities.
 		PACKAGES+=("bash") # Used by `termux-bootstrap-second-stage.sh`
-		PACKAGES+=("bzip2")
+		# The package was renamed from bzip2 to libbz2; it still installs the
+		# bzip2/bunzip2 utilities into the bootstrap prefix.
+		PACKAGES+=("libbz2")
 		if ! ${BOOTSTRAP_ANDROID10_COMPATIBLE}; then
 			PACKAGES+=("command-not-found")
 		else
