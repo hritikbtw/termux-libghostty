@@ -5,11 +5,11 @@ Maintainer: Michal Bednarski @michalbednarski
 Installed-Size: 620
 Conflicts: termux-tools (<< 0.51)
 Filename: site/apt/termux-main/pool/main/termux-am_0.8.0-2_all.deb
-Size: 577260
-MD5sum: ba7494e512fc6a732861277252441fb3
-SHA1: 130ccf3eb15bd7bc9409140b0cea309d3e184666
-SHA256: eb1153f749dd5c35c9143dcace8c27893c0481d7d9fa4650a5dc589e24853592
-SHA512: 15496dd0d1c3610e1147223033f223ec4eb9c5e6caa9771572f6d25d965ab32ae706de900b7b0bfeda453bc91d2fd89d080d7fbc430d98144be1eb8973785c10
+Size: 577256
+MD5sum: 47afa375ef130e4b6d69a984a48d5a9c
+SHA1: beb653eeeb3785d1edd459586460feade5f2ed4f
+SHA256: abce64b979c4b869a9d699b32871d3632aca79fd00fa9900e2fd61438627db43
+SHA512: ab2d983708c9ee5b2a7312506160f338213331dbfe47cb125133ff57e1f1577d92d6cbdc3c7c8b281ba3a5d37e28d09c67c1823e6b257fb85f15f3c88fb86f76
 Homepage: https://github.com/termux/TermuxAm
 Description: Android Oreo-compatible am command reimplementation
 
