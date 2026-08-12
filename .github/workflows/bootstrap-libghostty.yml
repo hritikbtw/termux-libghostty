@@ -106,7 +106,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: bootstrap-${{ matrix.arch }}
-          path: bootstrap-${{ matrix.arch }}.zip
+          # build-bootstraps.sh writes the archive into output/ (the only repo
+          # path the container's restricted AppArmor profile allows writing).
+          path: output/bootstrap-${{ matrix.arch }}.zip
           if-no-files-found: error
 
   publish:
