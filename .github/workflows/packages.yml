@@ -239,7 +239,11 @@ jobs:
         device_name: /dev/zram0
 
     - name: Build docker image
-      if: ${{ steps.build-info.outputs.needs-docker-build == 'true' }}
+      # The fork's builder image differs from upstream's (it provisions
+      # platforms;android-33 for termux-am). workflow_dispatch bypasses the
+      # commit-range detection, so always rebuild on dispatch, otherwise the
+      # stale upstream image is used and Gradle fails to auto-install SDK 33.
+      if: ${{ steps.build-info.outputs.needs-docker-build == 'true' || github.event_name == 'workflow_dispatch' }}
       run: |
         docker build -t ghcr.io/termux/package-builder:latest scripts/
         docker buildx prune -af
