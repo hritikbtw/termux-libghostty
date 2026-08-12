@@ -45,6 +45,8 @@ termux_download() {
 		--speed-limit 1000   # Expect at least 1000 Bytes per second
 		--speed-time 180     # Allow slower mirrors up to 180 seconds before failing
 		--location           # Follow redirects
+		# Some mirrors (e.g. gnupg.org) return 403 to the default curl UA.
+		--user-agent "Mozilla/5.0 (X11; Linux x86_64) TermuxPackageBuilder/1.0"
 	)
 	TMPFILE=$(mktemp "$TERMUX_PKG_TMPDIR/download.${TERMUX_PKG_NAME-unnamed}.XXXXXXXXX")
 	if [[ "${TERMUX_QUIET_BUILD-}" == "true" ]]; then

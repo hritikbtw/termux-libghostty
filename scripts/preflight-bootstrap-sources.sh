@@ -35,10 +35,17 @@ while [ ${#queue[@]} -gt 0 ]; do
     d="${d%%:*}"
     [ -z "${seen[$d]:-}" ] && queue+=("$d")
   done
-  ver="$(sed -n 's/^TERMUX_PKG_VERSION="\([^"]*\)"/\1/p' "$dir/build.sh" | head -1)"
-  srcs="$(sed -n 's/^TERMUX_PKG_SRCURL="\([^"]*\)"/\1/p' "$dir/build.sh" | head -1)"
+  ver="$(sed -n 's/^TERMUX_PKG_VERSION=\(.*\)$/\1/p' "$dir/build.sh" | head -1)"
+  ver="${ver%\"}"
+  ver="${ver#\"}"
+  # SRCURL is usually unquoted in recipes; strip optional surrounding quotes.
+  srcs="$(sed -n 's/^TERMUX_PKG_SRCURL=\(.*\)$/\1/p' "$dir/build.sh" | head -1)"
+  srcs="${srcs%\"}"
+  srcs="${srcs#\"}"
   for u in $srcs; do
     [ -z "$u" ] && continue
+    u="${u//\$\{TERMUX_PKG_VERSION%.*\}/${ver%.*}}"
+    u="${u//\$\{TERMUX_PKG_VERSION:0:4\}/${ver:0:4}}"
     u="${u//\$\{TERMUX_PKG_VERSION\}/$ver}"
     u="${u//\$TERMUX_PKG_VERSION/$ver}"
     if [[ "$u" == *'${'* ]]; then
@@ -63,7 +70,11 @@ for u in "${urls[@]}"; do
     continue
   fi
   printf '  %s\n' "$u"
-  if ! curl --fail --location --retry 5 --retry-all-errors --no-progress-meter \
+  # HEAD first (fast, avoids downloading multi-hundred-MB sources like the
+  # NDK for ndk-sysroot); fall back to a full GET for servers without HEAD.
+  if ! curl --fail --location --retry 3 --retry-all-errors --no-progress-meter \
+       --connect-timeout 20 --max-time 60 --head --output /dev/null "$u" && \
+     ! curl --fail --location --retry 5 --retry-all-errors --no-progress-meter \
        --connect-timeout 20 --max-time 120 --output /dev/null "$u"; then
     echo "  FAILED to download $u"
     fail=1
