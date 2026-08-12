@@ -18,7 +18,7 @@ jobs:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' &&
-      github.event.workflow_run.repository.full_name == 'hritikbtw/termux-libghostty'
+      github.event.workflow_run.repository.full_name == 'hritikbtw/termux_libghostty-packages'
     runs-on: ubuntu-24.04
     env:
       APT_SITE: site/apt

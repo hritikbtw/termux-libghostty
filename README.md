@@ -39,7 +39,7 @@ After GitHub Pages is enabled for the `gh-pages` branch, the repository URLs
 will be:
 
 ```text
-https://hritikbtw.github.io/termux-libghostty/apt/termux-main
-https://hritikbtw.github.io/termux-libghostty/apt/termux-root
-https://hritikbtw.github.io/termux-libghostty/apt/termux-x11
+https://hritikbtw.github.io/termux_libghostty-packages/apt/termux-main
+https://hritikbtw.github.io/termux_libghostty-packages/apt/termux-root
+https://hritikbtw.github.io/termux_libghostty-packages/apt/termux-x11
 ```

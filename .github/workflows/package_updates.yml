@@ -96,7 +96,7 @@ jobs:
     permissions:
       issues: write
       contents: write
-    if: github.event_name != 'pull_request' && github.event_name != 'push' && github.repository == 'hritikbtw/termux-libghostty'
+    if: github.event_name != 'pull_request' && github.event_name != 'push' && github.repository == 'hritikbtw/termux_libghostty-packages'
     runs-on: ubuntu-26.04
     steps:
       - name: Clone repository
