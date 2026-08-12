@@ -4,7 +4,7 @@ TERMUX_PKG_LICENSE="GPL-2.0, LGPL-2.1, MIT"
 TERMUX_PKG_LICENSE_FILE="COPYING, COPYING.LESSER, LICENSES"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="2.1.2"
-TERMUX_PKG_SRCURL="https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-${TERMUX_PKG_VERSION}.tar.bz2"
+TERMUX_PKG_SRCURL="https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gpgme/gpgme-${TERMUX_PKG_VERSION}.tar.bz2"
 TERMUX_PKG_SHA256=0687a95b299871c4141f507c0f740de6b429c9ac067d0fa4e062e3264df5fb77
 TERMUX_PKG_AUTO_UPDATE=true
 TERMUX_PKG_DEPENDS="gnupg (>= 2.2.9-1), libassuan, libgpg-error"
