@@ -65,9 +65,9 @@ jobs:
             done
 
             declare -A repos=(
-              [termux-libghostty-main]=termux-main
-              [termux-libghostty-root]=termux-root
-              [termux-libghostty-x11]=termux-x11
+              [termux-main]=termux-main
+              [termux-root]=termux-root
+              [termux-x11]=termux-x11
             )
             for repo in "${!repos[@]}"; do
               list="incoming/debs/built_${repo}_packages.txt"
