@@ -58,30 +58,30 @@ jobs:
           shopt -s nullglob
           archives=(incoming-artifacts/*.tar)
           if [ "${#archives[@]}" -eq 0 ]; then
-            echo "No package archives were produced by the Packages workflow."
-            exit 1
-          fi
-          for archive in "${archives[@]}"; do
-            tar xf "$archive" -C incoming
-          done
+            echo "No package archives were produced by the Packages workflow; refreshing existing metadata."
+          else
+            for archive in "${archives[@]}"; do
+              tar xf "$archive" -C incoming
+            done
 
-          declare -A repos=(
-            [termux-libghostty-main]=termux-main
-            [termux-libghostty-root]=termux-root
-            [termux-libghostty-x11]=termux-x11
-          )
-          for repo in "${!repos[@]}"; do
-            list="incoming/debs/built_${repo}_packages.txt"
-            [ -f "$list" ] || continue
-            pool="$APT_SITE/${repos[$repo]}/pool/main"
-            mkdir -p "$pool"
-            while IFS= read -r package; do
-              [ -n "$package" ] || continue
-              find incoming/debs -maxdepth 1 -type f \
-                \( -name "${package}_*.deb" -o -name "${package}-static_*.deb" \) \
-                -exec cp -f {} "$pool/" \;
-            done < "$list"
-          done
+            declare -A repos=(
+              [termux-libghostty-main]=termux-main
+              [termux-libghostty-root]=termux-root
+              [termux-libghostty-x11]=termux-x11
+            )
+            for repo in "${!repos[@]}"; do
+              list="incoming/debs/built_${repo}_packages.txt"
+              [ -f "$list" ] || continue
+              pool="$APT_SITE/${repos[$repo]}/pool/main"
+              mkdir -p "$pool"
+              while IFS= read -r package; do
+                [ -n "$package" ] || continue
+                find incoming/debs -maxdepth 1 -type f \
+                  \( -name "${package}_*.deb" -o -name "${package}-static_*.deb" \) \
+                  -exec cp -f {} "$pool/" \;
+              done < "$list"
+            done
+          fi
 
       - name: Install APT metadata tools
         run: |
@@ -110,15 +110,26 @@ jobs:
             "termux-x11 x11 main"; do
             read -r repo distribution component <<< "$repo_dist"
             root="$APT_SITE/$repo"
-            [ -d "$root/pool/main" ] || continue
+            mkdir -p "$root/pool/main"
             for arch in aarch64 arm i686 x86_64; do
               binary="$root/dists/$distribution/$component/binary-$arch"
               mkdir -p "$binary"
               apt-ftparchive -a "$arch" packages "$root/pool/main" > "$binary/Packages"
               gzip -9c "$binary/Packages" > "$binary/Packages.gz"
             done
+            # Contents files are consumed by the command-not-found package build
+            # (generate-db.js fetches Contents-<arch>.gz per repo from repo.json).
+            # apt-ftparchive emits tabs; generate-db.js splits lines on spaces.
             mkdir -p "$root/dists/$distribution"
+            apt-ftparchive contents "$root/pool/main" | sed 's/\t/ /g' > "$root/dists/$distribution/Contents"
+            gzip -9c "$root/dists/$distribution/Contents" > "$root/dists/$distribution/Contents.gz"
+            for arch in aarch64 arm i686 x86_64; do
+              cp "$root/dists/$distribution/Contents" "$root/dists/$distribution/Contents-$arch"
+              cp "$root/dists/$distribution/Contents.gz" "$root/dists/$distribution/Contents-$arch.gz"
+            done
             apt-ftparchive release "$root/dists/$distribution" > "$root/dists/$distribution/Release"
+            # Idempotent re-publish: gpg refuses to overwrite existing outputs.
+            rm -f "$root/dists/$distribution/InRelease" "$root/dists/$distribution/Release.gpg"
             gpg --batch --pinentry-mode loopback --passphrase "$APT_GPG_PASSPHRASE" \
               --local-user "$key_id" --clearsign \
               --output "$root/dists/$distribution/InRelease" \
