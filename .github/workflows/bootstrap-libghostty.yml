@@ -121,6 +121,9 @@ jobs:
       - name: Fetch bootstrap archives
         uses: actions/download-artifact@v7
         with:
+          # Skip the *.dockerbuild cache artifact from the builder-image job,
+          # which download-artifact cannot extract.
+          pattern: bootstrap-*
           merge-multiple: true
           path: ./
 
