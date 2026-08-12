@@ -45,16 +45,26 @@ termux_download() {
 		--speed-limit 1000   # Expect at least 1000 Bytes per second
 		--speed-time 180     # Allow slower mirrors up to 180 seconds before failing
 		--location           # Follow redirects
-		# Some mirrors (e.g. gnupg.org) return 403 to the default curl UA.
-		--user-agent "Mozilla/5.0 (X11; Linux x86_64) TermuxPackageBuilder/1.0"
 	)
 	TMPFILE=$(mktemp "$TERMUX_PKG_TMPDIR/download.${TERMUX_PKG_NAME-unnamed}.XXXXXXXXX")
 	if [[ "${TERMUX_QUIET_BUILD-}" == "true" ]]; then
 		CURL_OPTIONS+=(--no-progress-meter) # Don't print out transfer statistics
 	fi
 
+	# Mirrors disagree about user agents: gnupg.org returns 403 to the default
+	# curl UA, while sourceforge returns 403 to browser-like UAs. Try the
+	# default first, then a browser UA.
+	BROWSER_UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+	attempt_download() { # $1: UA string, may be empty
+		local -a ua_args=()
+		if [ -n "$1" ]; then
+			ua_args=(--user-agent "$1")
+		fi
+		curl "${CURL_OPTIONS[@]}" "${ua_args[@]}" --output "$TMPFILE" "$URL"
+	}
+
 	echo "Downloading ${URL}"
-	if ! curl "${CURL_OPTIONS[@]}" --output "$TMPFILE" "$URL"; then
+	if ! attempt_download ""; then
 		local error=1
 		local retry=2
 		local delay=60
@@ -62,11 +72,17 @@ termux_download() {
 		for (( try=1; try <= retry; try++ )); do
 			echo "Retrying #${try} download ${URL} in ${delay}"
 			sleep "${delay}"
-			if curl "${CURL_OPTIONS[@]}" --output "$TMPFILE" "$URL"; then
+			if attempt_download ""; then
 				error=0
 				break
 			fi
 		done
+		if [[ "${error}" != 0 ]]; then
+			echo "Retrying ${URL} with a browser user agent"
+			if attempt_download "$BROWSER_UA"; then
+				error=0
+			fi
+		fi
 		if [[ "${error}" != 0 ]]; then
 			echo "Failed to download $URL" 1>&2
 			return 1

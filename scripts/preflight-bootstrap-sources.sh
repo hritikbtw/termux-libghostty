@@ -58,6 +58,7 @@ while [ ${#queue[@]} -gt 0 ]; do
 done
 
 echo "Checking ${#urls[@]} sources across ${#seen[@]} bootstrap dependency packages (${unresolved} unresolved skipped)"
+BROWSER_UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 fail=0
 for u in "${urls[@]}"; do
   if [[ "$u" == git+* ]]; then
@@ -72,10 +73,17 @@ for u in "${urls[@]}"; do
   printf '  %s\n' "$u"
   # HEAD first (fast, avoids downloading multi-hundred-MB sources like the
   # NDK for ndk-sysroot); fall back to a full GET for servers without HEAD.
-  if ! curl --fail --location --retry 3 --retry-all-errors --no-progress-meter \
-       --connect-timeout 20 --max-time 60 --head --output /dev/null "$u" && \
-     ! curl --fail --location --retry 5 --retry-all-errors --no-progress-meter \
-       --connect-timeout 20 --max-time 120 --output /dev/null "$u"; then
+  # Mirrors disagree about user agents (gnupg.org vs sourceforge), so retry
+  # with a browser UA if the default one is rejected.
+  check_url() { # $1: UA string, may be empty
+    local -a ua=()
+    [ -n "$1" ] && ua=(--user-agent "$1")
+    curl --fail --location --retry 3 --retry-all-errors --no-progress-meter \
+      --connect-timeout 20 --max-time 60 --head "${ua[@]}" --output /dev/null "$u" || \
+    curl --fail --location --retry 5 --retry-all-errors --no-progress-meter \
+      --connect-timeout 20 --max-time 120 "${ua[@]}" --output /dev/null "$u"
+  }
+  if ! check_url "" && ! check_url "$BROWSER_UA"; then
     echo "  FAILED to download $u"
     fail=1
   fi
