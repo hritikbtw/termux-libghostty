@@ -114,7 +114,9 @@ jobs:
             for arch in aarch64 arm i686 x86_64; do
               binary="$root/dists/$distribution/$component/binary-$arch"
               mkdir -p "$binary"
-              apt-ftparchive -a "$arch" packages "$root/pool/main" > "$binary/Packages"
+              # Run from the repo root so the Filename field is relative to it
+              # (pool/main/...) instead of containing the local site/ path.
+              (cd "$root" && apt-ftparchive -a "$arch" packages pool/main) > "$binary/Packages"
               gzip -9c "$binary/Packages" > "$binary/Packages.gz"
             done
             # Contents files are consumed by the command-not-found package build
