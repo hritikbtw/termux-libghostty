@@ -94,7 +94,17 @@ jobs:
       - name: Pull shared package-builder image
         env:
           BUILDER_IMAGE: ghcr.io/${{ github.repository_owner }}/termux-libghostty-builder:${{ github.sha }}
-        run: docker pull "$BUILDER_IMAGE"
+        run: |
+          # GHCR blob downloads from pkg-containers.githubusercontent.com are
+          # occasionally reset by the CDN; retry the (idempotent) pull.
+          for attempt in 1 2 3 4 5; do
+            if docker pull "$BUILDER_IMAGE"; then
+              exit 0
+            fi
+            echo "docker pull attempt $attempt/5 failed; retrying in 15s"
+            sleep 15
+          done
+          exit 1
 
       - name: Build bootstrap from local package sources
         env:
