@@ -23,6 +23,12 @@ TERMUX_PKG_RECOMMENDS="ed, dos2unix, inetutils, net-tools, patch, unzip"
 
 termux_step_pre_configure() {
 	autoreconf -vfi
+	# configure.ac reads TERMUX_PREFIX/TERMUX_BASE_DIR/etc. from the environment
+	# and falls back to the stock /data/data/com.termux paths when unset. The
+	# build system keeps these as plain shell variables, so export them or the
+	# generated scripts (login, profile.d, termux-login.sh) would reference the
+	# stock prefix and the login shell would fall back to /system/bin/sh.
+	export TERMUX_PREFIX TERMUX_BASE_DIR TERMUX_ANDROID_HOME TERMUX_APP_PACKAGE TERMUX_PACKAGE_FORMAT TERMUX_PACKAGE_MANAGER
 }
 
 termux_step_post_make_install() {
